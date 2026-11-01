@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>instaviddownl - Instagram Downloader</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        orangeAccent: '#FF6B00',
+                        orangeHover: '#E05D00',
+                        brandGreen: '#10B981',
+                        brandPink: '#EC4899',
+                        brandPurple: '#8B5CF6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Custom Green - Pink - Purple Mesh Gradient Background */
+        .custom-hero-bg {
+            background: linear-gradient(135deg, #059669 0%, #d946ef 50%, #7c3aed 100%);
+        }
+
+        .dark .custom-hero-bg {
+            background: linear-gradient(135deg, #064e3b 0%, #701a75 50%, #4c1d95 100%);
+        }
+
+        /* Glassmorphism effects */
+        .glass-tab-bar {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark .glass-tab-bar {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .active-tab {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border-bottom: 3px solid #FF6B00;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Toast Notification Box -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-gray-700">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-orangeAccent text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Notification message</span>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="w-full bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-40 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Left Branding -->
+            <div class="flex items-center space-x-3">
+                <span class="bg-orangeAccent text-white font-extrabold text-xs px-2.5 py-1 rounded-md tracking-wider">ANAS</span>
+                <a href="#" class="flex items-center space-x-2 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brandGreen via-brandPink to-brandPurple flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-bolt text-lg"></i>
+                    </div>
+                    <span class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">
+                        instaviddownl
+                    </span>
+                </a>
+            </div>
+
+            <!-- Right Navigation & Controls -->
+            <div class="flex items-center space-x-4">
+                <button onclick="openFaqModal()" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-orangeAccent dark:hover:text-orangeAccent transition-colors">
+                    FAQ
+                </button>
+                
+                <!-- Dark / Light Theme Toggle -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+
+                <!-- Language Selector -->
+                <div class="relative">
+                    <button onclick="toggleLangDropdown()" class="flex items-center space-x-1 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-orangeAccent px-2 py-1 rounded-lg">
+                        <span>EN</span>
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </button>
+                    <div id="langDropdown" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50">
+                        <a href="#" class="block px-4 py-1.5 text-sm hover:bg-orange-50 dark:hover:bg-gray-700 font-medium text-orangeAccent">English</a>
+                        <a href="#" class="block px-4 py-1.5 text-sm hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">Spanish</a>
+                        <a href="#" class="block px-4 py-1.5 text-sm hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">Hindi</a>
+                        <a href="#" class="block px-4 py-1.5 text-sm hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">French</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION WITH GRADIENT BACKGROUND -->
+    <main class="flex-grow">
+        <section class="custom-hero-bg text-white pt-10 pb-16 px-4 sm:px-6 relative overflow-hidden transition-all duration-300">
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+
+                <!-- Type Icon Grid Tabs -->
+                <div class="inline-flex glass-tab-bar rounded-2xl p-1.5 mb-8 max-w-full overflow-x-auto shadow-xl">
+                    <div class="flex space-x-1 sm:space-x-2">
+                        <button onclick="selectTab(this, 'Video')" class="tab-btn active-tab px-4 py-2.5 rounded-xl flex items-center justify-center transition-all text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-circle-play text-lg"></i>
+                        </button>
+                        <button onclick="selectTab(this, 'Photo')" class="tab-btn px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all text-white/80 hover:text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-image text-lg"></i>
+                        </button>
+                        <button onclick="selectTab(this, 'Reels')" class="tab-btn px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all text-white/80 hover:text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-film text-lg"></i>
+                        </button>
+                        <button onclick="selectTab(this, 'IGTV')" class="tab-btn px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all text-white/80 hover:text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-tv text-lg"></i>
+                        </button>
+                        <button onclick="selectTab(this, 'Carousel')" class="tab-btn px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all text-white/80 hover:text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-images text-lg"></i>
+                        </button>
+                        <button onclick="selectTab(this, 'Stories')" class="tab-btn px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all text-white/80 hover:text-white font-medium text-sm sm:text-base">
+                            <i class="fa-solid fa-eye text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Headlines -->
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight mb-4 drop-shadow-md">
+                    Instagram Downloader
+                </h1>
+                <p class="text-base sm:text-xl font-medium text-white/90 mb-6 max-w-2xl mx-auto leading-relaxed">
+                    Download Instagram Videos, Photos, Reels, IGTV & carousel
+                </p>
+
+                <!-- Active Tag Pill -->
+                <div class="inline-flex items-center space-x-2 bg-orangeAccent/90 backdrop-blur-md px-4 py-1.5 rounded-full text-white text-sm font-semibold shadow-lg mb-8 border border-white/20">
+                    <i id="activeTagIcon" class="fa-solid fa-tv"></i>
+                    <span id="activeTagName">IGTV content downloader</span>
+                </div>
+
+                <!-- DOWNLOAD INPUT FORM CONTAINER -->
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white/95 dark:bg-gray-900/95 p-2 sm:p-3 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center gap-2 border border-white/40 dark:border-gray-700/50 backdrop-blur-md">
+                        
+                        <!-- Input Field & Paste Button -->
+                        <div class="flex items-center w-full bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-orangeAccent transition-all">
+                            <i class="fa-solid fa-link text-gray-400 mr-3"></i>
+                            <input 
+                                id="urlInput" 
+                                type="text" 
+                                placeholder="Insert instagram link here" 
+                                class="w-full bg-transparent text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none text-sm sm:text-base"
+                            >
+                            <button 
+                                onclick="handlePaste()" 
+                                class="ml-2 flex items-center space-x-1 px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold transition-all shrink-0"
+                            >
+                                <i class="fa-solid fa-paste"></i>
+                                <span>Paste</span>
+                            </button>
+                        </div>
+
+                        <!-- Download Action Button (Orange Tone) -->
+                        <button 
+                            id="downloadBtn" 
+                            onclick="processDownload()" 
+                            class="w-full sm:w-auto px-8 py-3.5 bg-orangeAccent hover:bg-orangeHover text-white font-bold text-base rounded-xl shadow-lg hover:shadow-orangeAccent/40 transition-all duration-200 shrink-0 flex items-center justify-center space-x-2 active:scale-95"
+                        >
+                            <span>Download</span>
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Quick tips under form -->
+                    <p class="text-xs text-white/80 mt-3 font-medium">
+                        * Supports HD 1080p downloads without watermark. Free & unlimited.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- DOWNLOAD RESULTS & PROCESSING AREA -->
+        <section class="max-w-4xl mx-auto px-4 my-10">
+            <!-- Loading Indicator -->
+            <div id="loader" class="hidden text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-orangeAccent border-t-transparent mb-4"></div>
+                <p class="text-gray-600 dark:text-gray-300 font-semibold text-base animate-pulse">Fetching high-quality media from Instagram...</p>
+            </div>
+
+            <!-- Simulated Download Result Card -->
+            <div id="resultCard" class="hidden bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all">
+                <div class="p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center">
+                    
+                    <!-- Media Preview -->
+                    <div class="relative w-full md:w-64 h-64 bg-gray-100 dark:bg-gray-900 rounded-2xl overflow-hidden shadow-inner shrink-0 group">
+                        <img id="mediaPreview" src="https://placehold.co/600x600/10B981/FFFFFF?text=Instagram+Media" alt="Media Preview" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i id="previewIcon" class="fa-solid fa-play text-white text-4xl shadow-md"></i>
+                        </div>
+                        <span id="qualityBadge" class="absolute top-3 left-3 bg-orangeAccent text-white text-xs font-bold px-2.5 py-1 rounded-md shadow">
+                            1080p HD
+                        </span>
+                    </div>
+
+                    <!-- Media Info & Download Buttons -->
+                    <div class="flex-grow w-full space-y-4">
+                        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-brandPink to-orangeAccent flex items-center justify-center text-white text-xs font-bold">
+                                    IG
+                                </div>
+                                <span class="font-bold text-gray-900 dark:text-white text-sm">@user_instagram</span>
+                            </div>
+                            <span class="text-xs font-medium text-gray-400">Verified Ready</span>
+                        </div>
+
+                        <p id="mediaCaption" class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                            Amazing moment captured on camera! Download this high resolution post directly to your device.
+                        </p>
+
+                        <!-- Download Options -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <button onclick="triggerSimulatedDownload('1080p')" class="w-full bg-orangeAccent hover:bg-orangeHover text-white py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-all">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Download Video (1080p)</span>
+                            </button>
+                            <button onclick="triggerSimulatedDownload('720p')" class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 transition-all">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Download (720p SD)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES & INFO SECTION -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-100 dark:border-gray-800">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Why use instaviddownl?</h2>
+                <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base">Fast, simple, and high-quality Instagram media downloader</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950/50 text-orangeAccent flex items-center justify-center text-xl font-bold mb-4">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Fast & Easy</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Copy the URL, paste it into the field, and click Download. Get your content in seconds.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-950/50 text-brandPink flex items-center justify-center text-xl font-bold mb-4">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">100% Secure</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">No account required. We do not store your data or download history on our servers.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-brandGreen flex items-center justify-center text-xl font-bold mb-4">
+                        <i class="fa-solid fa-sparkles"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Original Quality</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Save photos and videos in their original full HD resolution without compression loss.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FREQUENTLY ASKED QUESTIONS (FAQ) -->
+        <section class="max-w-4xl mx-auto px-4 py-12">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+                
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full p-5 text-left font-bold text-gray-900 dark:text-white flex justify-between items-center focus:outline-none">
+                        <span>How to download videos from Instagram?</span>
+                        <i class="fa-solid fa-chevron-down text-orangeAccent transition-transform"></i>
+                    </button>
+                    <div class="hidden px-5 pb-5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed border-t border-gray-50 dark:border-gray-700/50 pt-3">
+                        Copy the link of the Instagram video or post, paste it into the search box above, and click the "Download" button to save it to your device.
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full p-5 text-left font-bold text-gray-900 dark:text-white flex justify-between items-center focus:outline-none">
+                        <span>Is instaviddownl free to use?</span>
+                        <i class="fa-solid fa-chevron-down text-orangeAccent transition-transform"></i>
+                    </button>
+                    <div class="hidden px-5 pb-5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed border-t border-gray-50 dark:border-gray-700/50 pt-3">
+                        Yes! Our service is 100% free with unlimited downloads. You don't need to register or pay any subscription.
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full p-5 text-left font-bold text-gray-900 dark:text-white flex justify-between items-center focus:outline-none">
+                        <span>Can I download content from private Instagram accounts?</span>
+                        <i class="fa-solid fa-chevron-down text-orangeAccent transition-transform"></i>
+                    </button>
+                    <div class="hidden px-5 pb-5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed border-t border-gray-50 dark:border-gray-700/50 pt-3">
+                        No, to protect user privacy, our tool only allows downloading content from public Instagram accounts.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 py-8 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <span class="bg-orangeAccent text-white font-black text-xs px-2 py-0.5 rounded">ANAS</span>
+                <span class="text-lg font-bold text-gray-900 dark:text-white">instaviddownl</span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                We are not affiliated with Instagram or Meta.
+            </p>
+            <p class="text-xs text-gray-400 dark:text-gray-600">
+                &copy; 2026 instaviddownl. All rights reserved. Designed for speed & security.
+            </p>
+        </div>
+    </footer>
+
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">About & Help</h3>
+                <button onclick="closeFaqModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+                <p>Welcome to <strong>instaviddownl</strong> created by <strong>ANAS</strong>.</p>
+                <p>You can effortlessly download Instagram videos, photos, reels, IGTV posts, and stories in original high quality.</p>
+                <p class="text-xs text-gray-400">Tips: Use the paste button for quick link insertion!</p>
+            </div>
+            <button onclick="closeFaqModal()" class="mt-6 w-full bg-orangeAccent hover:bg-orangeHover text-white py-2.5 rounded-xl font-bold text-sm">
+                Got it
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State management
+        let activeType = 'IGTV';
+
+        // Select Tab Handler
+        function selectTab(btnElement, typeName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab');
+                btn.classList.add('text-white/80');
+            });
+            btnElement.classList.add('active-tab');
+            btnElement.classList.remove('text-white/80');
+
+            activeType = typeName;
+            
+            // Update Active Tag Pill
+            const tagIcon = document.getElementById('activeTagIcon');
+            const tagName = document.getElementById('activeTagName');
+            
+            tagName.textContent = `${typeName} content downloader`;
+
+            const iconMap = {
+                'Video': 'fa-circle-play',
+                'Photo': 'fa-image',
+                'Reels': 'fa-film',
+                'IGTV': 'fa-tv',
+                'Carousel': 'fa-images',
+                'Stories': 'fa-eye'
+            };
+            
+            tagIcon.className = `fa-solid ${iconMap[typeName] || 'fa-tv'}`;
+        }
+
+        // Clipboard Paste Functionality
+        function handlePaste() {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        if (text) {
+                            document.getElementById('urlInput').value = text;
+                            showToast('Link pasted from clipboard!');
+                        } else {
+                            showToast('Clipboard is empty!');
+                        }
+                    })
+                    .catch(() => {
+                        showToast('Please paste manually using Ctrl+V or Command+V');
+                    });
+            } else {
+                showToast('Clipboard access not supported in browser.');
+            }
+        }
+
+        // Process Download Demo Logic
+        function processDownload() {
+            const url = document.getElementById('urlInput').value.trim();
+            const loader = document.getElementById('loader');
+            const resultCard = document.getElementById('resultCard');
+
+            if (!url) {
+                showToast('Please insert a valid Instagram link first!');
+                return;
+            }
+
+            // Show loader, hide old result
+            loader.classList.remove('hidden');
+            resultCard.classList.add('hidden');
+
+            // Simulate fetching logic (1.5s delay)
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                resultCard.classList.remove('hidden');
+
+                // Update Preview content depending on active type
+                const mediaPreview = document.getElementById('mediaPreview');
+                const previewIcon = document.getElementById('previewIcon');
+                
+                if (activeType === 'Photo' || activeType === 'Carousel') {
+                    mediaPreview.src = 'https://placehold.co/600x600/EC4899/FFFFFF?text=Instagram+Photo+HD';
+                    previewIcon.className = 'fa-solid fa-magnifying-glass-plus text-white text-4xl shadow-md';
+                } else {
+                    mediaPreview.src = 'https://placehold.co/600x600/10B981/FFFFFF?text=Instagram+Video+Preview';
+                    previewIcon.className = 'fa-solid fa-play text-white text-4xl shadow-md';
+                }
+
+                showToast('Media fetched successfully!');
+                resultCard.scrollIntoView({ behavior: 'smooth' });
+            }, 1200);
+        }
+
+        // Simulated Download Trigger
+        function triggerSimulatedDownload(quality) {
+            showToast(`Downloading Instagram ${activeType} (${quality})...`);
+        }
+
+        // Toast Notification System
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = msg;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Theme Toggle (Light/Dark Mode)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = 'fa-solid fa-moon text-lg';
+                showToast('Switched to Light Mode');
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-sun text-lg';
+                showToast('Switched to Dark Mode');
+            }
+        }
+
+        // Dropdown toggle
+        function toggleLangDropdown() {
+            const dropdown = document.getElementById('langDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // FAQ accordion toggle
+        function toggleFaq(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+
+        // FAQ Modal open/close
+        function openFaqModal() {
+            document.getElementById('faqModal').classList.remove('hidden');
+            document.getElementById('faqModal').classList.add('flex');
+        }
+        function closeFaqModal() {
+            document.getElementById('faqModal').classList.add('hidden');
+            document.getElementById('faqModal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
